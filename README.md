@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/gshell_logo.png" width="900"/>
+</div>
+
 # Ghost on the Shell: An Expressive Representation of General 3D Shapes
 
 
