@@ -14,4 +14,4 @@ G-Shell is a generic and differentiable representation for both watertight and n
 Please refer to [our project page](https://gshell3d.github.io) and [our paper](https://gshell3d.github.io/static/paper/gshell.pdf) for more details.
 
 
-Code coming soon!
+## Code coming soon!
