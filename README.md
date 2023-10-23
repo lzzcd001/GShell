@@ -15,3 +15,16 @@ Please refer to [our project page](https://gshell3d.github.io) and [our paper](h
 
 
 ## Code coming soon!
+
+## Citation
+
+If you find our work useful to your research, please consider citing:
+
+```
+@article{liu2023gshell,
+    title={Ghost on the Shell: An Expressive Representation of General 3D Shapes},
+    author={Liu, Zhen and Feng, Yao and Xiu, Yuliang and Liu, Weiyang and Paull, Liam and Black, Michael J. and Schölkopf, Bernhard},
+    journal={arXiv preprint arXiv:},
+    year={2023}
+}
+```
