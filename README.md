@@ -28,7 +28,7 @@ If you find our work useful to your research, please consider citing:
 @article{liu2023gshell,
     title={Ghost on the Shell: An Expressive Representation of General 3D Shapes},
     author={Liu, Zhen and Feng, Yao and Xiu, Yuliang and Liu, Weiyang and Paull, Liam and Black, Michael J. and Schölkopf, Bernhard},
-    journal={arXiv preprint arXiv:},
+    journal={arXiv preprint arXiv:2310.15168},
     year={2023}
 }
 ```
