@@ -41,7 +41,7 @@ pip install --global-option="--no-networks" git+https://github.com/NVlabs/tiny-c
 
 Follow the instructions [here](https://github.com/NVIDIAGameWorks/kaolin/) to install kaolin.
 
-Download the tet-grid files ([res128](https://drive.google.com/file/d/1u5FzpuY_BOAg8-g9lRwvah7mbCBOfNVg/view?usp=sharing) & [res256](https://drive.google.com/file/d/1JnFoPEGcTLFJ7OHSWrI72h1H9_yOxUP6/view?usp=sharing)) to `data/tets` folder under the root directory, and uncompress it there. You shall see the folder `data/tets/` created with `256_tets.npz` inside. Alternatively, you may follow https://github.com/crawforddoran/quartet and `data/tets/generate_tets.py` to create the tet-grid files.
+Download the tet-grid files ([res128](https://drive.google.com/file/d/1u5FzpuY_BOAg8-g9lRwvah7mbCBOfNVg/view?usp=sharing) & [res256](https://drive.google.com/file/d/1JnFoPEGcTLFJ7OHSWrI72h1H9_yOxUP6/view?usp=sharing)) to `data/tets` folder under the root directory. You shall see the folder `data/tets/` created with `256_tets.npz` inside. Alternatively, you may follow https://github.com/crawforddoran/quartet and `data/tets/generate_tets.py` to create the tet-grid files.
 
 #### Generation
 
