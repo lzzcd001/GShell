@@ -39,9 +39,9 @@ pip install git+https://github.com/NVlabs/nvdiffrast/
 pip install --global-option="--no-networks" git+https://github.com/NVlabs/tiny-cuda-nn#subdirectory=bindings/torch
 ```
 
-Follow the instructions (here)[https://github.com/NVIDIAGameWorks/kaolin/] to install kaolin.
+Follow the instructions [here](https://github.com/NVIDIAGameWorks/kaolin/) to install kaolin.
 
-Download the tet-grid files ((res128)[https://drive.google.com/file/d/1u5FzpuY_BOAg8-g9lRwvah7mbCBOfNVg/view?usp=sharing] & (res256)[https://drive.google.com/file/d/1JnFoPEGcTLFJ7OHSWrI72h1H9_yOxUP6/view?usp=sharing]) to `data/tets` folder under the root directory, and uncompress it there. You shall see the folder `data/tets/` created with `256_tets.npz` inside. Alternatively, you may follow https://github.com/crawforddoran/quartet and `data/tets/generate_tets.py` to create the tet-grid files.
+Download the tet-grid files ([res128](https://drive.google.com/file/d/1u5FzpuY_BOAg8-g9lRwvah7mbCBOfNVg/view?usp=sharing) & [res256](https://drive.google.com/file/d/1JnFoPEGcTLFJ7OHSWrI72h1H9_yOxUP6/view?usp=sharing)) to `data/tets` folder under the root directory, and uncompress it there. You shall see the folder `data/tets/` created with `256_tets.npz` inside. Alternatively, you may follow https://github.com/crawforddoran/quartet and `data/tets/generate_tets.py` to create the tet-grid files.
 
 #### Generation
 
@@ -64,14 +64,14 @@ Install the following
 
 #### DeepFashion3D mesh dataset
 
-We provide ground-truth images (rendered under realistic environment light with Blender) for 9 instances in (DeepFashion3D-v2 dataset)[https://github.com/GAP-LAB-CUHK-SZ/deepFashion3D]. The download links for the raw meshes can be found in their repo.
+We provide ground-truth images (rendered under realistic environment light with Blender) for 9 instances in [DeepFashion3D-v2 dataset](https://github.com/GAP-LAB-CUHK-SZ/deepFashion3D). The download links for the raw meshes can be found in their repo.
 
 Training data (non-metallic material): https://drive.google.com/file/d/1LwBqLYzamFLyBIiNpD6kEkvySrq2nruG/view?usp=sharing
 
 
 #### NeRF synthetic dataset
 
-Download the (NeRF synthetic dataset archive)[https://drive.google.com/uc?export=download&id=18JxhpWD-4ZmuFKLzKlAw-w5PpzZxXOcG] and unzip it into the `data/` folder.
+Download the [NeRF synthetic dataset archive](https://drive.google.com/uc?export=download&id=18JxhpWD-4ZmuFKLzKlAw-w5PpzZxXOcG) and unzip it into the `data/` folder.
 
 #### Hat dataset
 
@@ -146,4 +146,4 @@ If you find our work useful to your research, please consider citing:
 
 ## Acknowledgement
 
-We sincerely thank the authors of (Nvdiffrecmc)[https://github.com/NVlabs/nvdiffrecmc], (FlexiCubes)[https://github.com/nv-tlabs/FlexiCubes] and https://github.com/yang-song/score_sde_pytorch for sharing their codes. Our repo is adapted from (MeshDiffusion)[https://github.com/lzzcd001/MeshDiffusion/].
+We sincerely thank the authors of [Nvdiffrecmc](https://github.com/NVlabs/nvdiffrecmc), [FlexiCubes](https://github.com/nv-tlabs/FlexiCubes) and https://github.com/yang-song/score_sde_pytorch for sharing their codes. Our repo is adapted from [MeshDiffusion](https://github.com/lzzcd001/MeshDiffusion/).
