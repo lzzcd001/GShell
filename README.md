@@ -98,7 +98,7 @@ For FlexiCubes + G-Shell, run
 #### Synthetic data
 
 ```
-  python train_gshelltet_synthetic.py --config config/nerf_chair.json --trainset_path $TRAINSET_PATH --o $OUTPUT_PATH
+  python train_gshelltet_synthetic.py --config config/nerf_chair.json --o $OUTPUT_PATH
 ```
 
 #### Hat data
