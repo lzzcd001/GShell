@@ -66,7 +66,7 @@ Install the following
 
 We provide ground-truth images (rendered under realistic environment light with Blender) for 9 instances in [DeepFashion3D-v2 dataset](https://github.com/GAP-LAB-CUHK-SZ/deepFashion3D). The download links for the raw meshes can be found in their repo.
 
-Training data (non-metallic material): https://drive.google.com/file/d/1LwBqLYzamFLyBIiNpD6kEkvySrq2nruG/view?usp=sharing
+non-metallic material: [training data](https://drive.google.com/file/d/1LwBqLYzamFLyBIiNpD6kEkvySrq2nruG/view?usp=sharing), [test data](https://drive.google.com/file/d/1-47dH_yJrUzKVdKbJenslpdyHwDI6QVo/view?usp=sharing)
 
 
 #### NeRF synthetic dataset
@@ -76,6 +76,8 @@ Download the [NeRF synthetic dataset archive](https://drive.google.com/uc?export
 #### Hat dataset
 
 Download link: https://drive.google.com/file/d/18UmT1NM5wJQ-ZM-rtUXJHXkDc-ba-xVk/view?usp=sharing
+
+RGB images, segmentation masks and the corresponding camera poses are included. Alternatively, you may choose to 1) generate the camera poses with COLMAP and 2) create binary segmentation masks by yourself.
 
 ### Training
 
@@ -92,8 +94,6 @@ For FlexiCubes + G-Shell, run
 ```
   python train_gflexicubes_deepfashion.py --config config/deepfashion_mc_80.json --index $INDEX --trainset_path $TRAINSET_PATH --testset_path $TESTSET_PATH --o $OUTPUT_PATH
 ```
-
-**NOTE: the test data are not uploaded yet. Drop `--testset_path $TESTSET_PATH` for now.**
 
 #### Synthetic data
 
