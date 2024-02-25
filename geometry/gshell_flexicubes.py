@@ -363,12 +363,8 @@ class GShellFlexiCubes:
         edges_weight = torch.cat([torch.index_select(input=edges_weight, index=torch.tensor(1, device=self.device), dim=edge_dim), -
                                  torch.index_select(input=edges_weight, index=torch.tensor(0, device=self.device), dim=edge_dim)], edge_dim)
         denominator = edges_weight.sum(edge_dim, keepdim=True).expand(-1, 2, 1)
-        # scale = edges_weight / denominator
         with torch.no_grad():
-            ### old logic
-            # nonzero_mask = (denominator.abs() > 0)
-            ### new logic
-            nonzero_mask = torch.sign(edges_weight).sum(edge_dim, keepdim=True).abs() != 2
+            nonzero_mask = torch.sign(edges_weight).sum(edge_dim, keepdim=True).abs().expand(-1, 2, 1) != 2
         scale = torch.zeros_like(edges_weight)
         scale[nonzero_mask] = edges_weight[nonzero_mask] / denominator[nonzero_mask]
         ue = (edges_x * scale).sum(edge_dim)

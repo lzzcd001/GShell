@@ -543,6 +543,7 @@ if __name__ == "__main__":
     parser.add_argument('--testset_path', type=str, default='')
     parser.add_argument('--msdf_reg_open_scale', type=float, default=1e-6)
     parser.add_argument('--msdf_reg_close_scale', type=float, default=3e-6)
+    parser.add_argument('--eikonal_scale', type=float)
 
     FLAGS = parser.parse_args()
     FLAGS.mtl_override        = None        # Override material of model
