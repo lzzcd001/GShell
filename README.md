@@ -138,7 +138,7 @@ Download the pretrained model for upper-body garments lower-body garments [here]
 
 #### For training
 
-1) Download the processed Cloth3D garment dataset (for upper-body & lower-body garments) from [link](). Alternatively, you may create a grid dataset for your own objects by a) normalize your datapoints by re-center and re-scaling meshes, b) fitting G-Shell representations and c) turn these representations into cubid grids by running `GMeshDiffusion/metadata/tet_to_cubic_grid_dataset.py`.
+1) Download the processed Cloth3D garment dataset (for upper-body & lower-body garments) from [link]() (to be uploaed shortly). Alternatively, you may create a grid dataset for your own objects by a) normalize your datapoints by re-center and re-scaling meshes, b) fitting G-Shell representations and c) turn these representations into cubid grids by running `GMeshDiffusion/metadata/tet_to_cubic_grid_dataset.py`.
 
 2) Run `GMeshDiffusion/metadata/get_splits_lower.py` and/or `GMeshDiffusion/metadata/get_splits_upper.py` to generate lists of training and test datapoints.
 
