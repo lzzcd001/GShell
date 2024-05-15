@@ -41,7 +41,7 @@ pip install --global-option="--no-networks" git+https://github.com/NVlabs/tiny-c
 
 Follow the instructions [here](https://github.com/NVIDIAGameWorks/kaolin/) to install kaolin.
 
-Download the tet-grid files ([res128](https://drive.google.com/file/d/1u5FzpuY_BOAg8-g9lRwvah7mbCBOfNVg/view?usp=sharing) & [res256](https://drive.google.com/file/d/1JnFoPEGcTLFJ7OHSWrI72h1H9_yOxUP6/view?usp=sharing)) to `data/tets` folder under the root directory. Alternatively, you may follow https://github.com/crawforddoran/quartet and `data/tets/generate_tets.py` to create the tet-grid files.
+Download the tet-grid files ([res128](https://drive.google.com/file/d/1u5FzpuY_BOAg8-g9lRwvah7mbCBOfNVg/view?usp=sharing), [res256](https://drive.google.com/file/d/1JnFoPEGcTLFJ7OHSWrI72h1H9_yOxUP6/view?usp=sharing)) & [res64 for G-MeshDiffusion](https://drive.google.com/file/d/1YQuU4D-0q8kwrzEfla3hGzBg4erBhand/view?usp=drive_link) to `data/tets` folder under the root directory. Alternatively, you may follow https://github.com/crawforddoran/quartet and `data/tets/generate_tets.py` to create the tet-grid files.
 
 #### Generation
 
@@ -54,7 +54,7 @@ Install the following
 
 - [x] Code for reconstruction
 - [ ] DeepFashion3D multiview image dataset for metallic surfaces
-- [ ] Code for generative models
+- [x] Code for generative models
 - [ ] Code for DeepFashion3D dataset preparation
 - [ ] Evaluation code for generative models
 
@@ -126,8 +126,34 @@ You may consider modify the following, depending on your demand:
 
 
 
-## Generation (To be done)
+## Generation
 
+### Preparation
+
+Download info files for the underlying tet grids and binary masks that indicating which locations store useful values in the cubic grids from [tet_info.pt](https://drive.google.com/file/d/19Dw_hOpcVHazpm2_1qA7T7j5xABOUWxv/view?usp=drive_link), [global_mask_res64.pt](https://drive.google.com/file/d/1mlSnu23_u08HH5aO3x5z1V9GzguFzoiT/view?usp=drive_link), [cat_mask_res64.pt](https://drive.google.com/file/d/11Bm4CQX-y1X7R47AfQQz20s7oP6AbbNK/view?usp=drive_link) and [occ_mask_res64.pt](https://drive.google.com/file/d/1qEqqLfZe633GdVkj5MGOCON_kf0l4e4G/view?usp=drive_link). Put these files under `GMeshDiffusion/metadata/`.
+
+#### For evaluation
+
+Download the pretrained model for [upper-body garments]() and [lower-body garments]().
+
+#### For training
+
+1) Download the processed Cloth3D garment dataset (for upper-body & lower-body garments) from [link](). Alternatively, you may create a grid dataset for your own objects by a) normalize your datapoints by re-center and re-scaling meshes, b) fitting G-Shell representations and c) turn these representations into cubid grids by running `GMeshDiffusion/metadata/tet_to_cubic_grid_dataset.py`.
+
+2) Run `GMeshDiffusion/metadata/get_splits_lower.py` and/or `GMeshDiffusion/metadata/get_splits_upper.py` to generate lists of training and test datapoints.
+
+
+### Evaluation
+
+1. Modify the batch size in config files in `GMeshDiffusion/diffusion_config/` and enter the desired directories and values (for model checkpoints, where to store generated samples, etc.) in `GMeshDiffusion/scripts`.
+2. Run the eval scripts in `GMeshDiffusion/scripts`.
+3. Run `eval_gmeshdiffusion_generated_samples.py` to extract triangular meshes.
+
+### Training
+
+1. Enter the desired directories (for model checkpoints and where to store generated samples) in `GMeshDiffusion/scripts`.
+2. Modify the config files if necessary.
+3. Run the training scripts in `GMeshDiffusion/scripts`.
 
 
 ## Citation
