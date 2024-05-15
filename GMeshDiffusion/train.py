@@ -139,13 +139,13 @@ def main(argv):
 
     tet_resolution = 64
     pixcat_mask = (torch.load(
-        f'/is/cluster/wliu/zliu/opendmt/data/flexvis_cat_mask_res{tet_resolution}_correct.pt', 
+        FLAGS.config.pixcat_mask_path, 
             map_location='cpu').view(
                 1, 1, tet_resolution * 2, tet_resolution * 2, tet_resolution * 2
             )
     )
     feature_mask = (torch.load(
-        f'/is/cluster/wliu/zliu/opendmt/data/flexvis_global_mask_res{tet_resolution}_correct.pt',
+        FLAGS.config.feature_mask_path, 
             map_location='cpu').view(
             1, 12, tet_resolution * 2, tet_resolution * 2, tet_resolution * 2,
             )
