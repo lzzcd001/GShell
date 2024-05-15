@@ -132,9 +132,9 @@ You may consider modify the following, depending on your demand:
 
 Download info files for the underlying tet grids and binary masks that indicating which locations store useful values in the cubic grids from [tet_info.pt](https://drive.google.com/file/d/19Dw_hOpcVHazpm2_1qA7T7j5xABOUWxv/view?usp=drive_link), [global_mask_res64.pt](https://drive.google.com/file/d/1mlSnu23_u08HH5aO3x5z1V9GzguFzoiT/view?usp=drive_link), [cat_mask_res64.pt](https://drive.google.com/file/d/11Bm4CQX-y1X7R47AfQQz20s7oP6AbbNK/view?usp=drive_link) and [occ_mask_res64.pt](https://drive.google.com/file/d/1qEqqLfZe633GdVkj5MGOCON_kf0l4e4G/view?usp=drive_link). Put these files under `GMeshDiffusion/metadata/`.
 
-#### For evaluation
+#### For inference
 
-Download the pretrained model for [upper-body garments]() and [lower-body garments]().
+Download the pretrained model for upper-body garments lower-body garments [here](https://huggingface.co/lzzcd001/GMeshDiffusion-Models).
 
 #### For training
 
@@ -143,7 +143,7 @@ Download the pretrained model for [upper-body garments]() and [lower-body garmen
 2) Run `GMeshDiffusion/metadata/get_splits_lower.py` and/or `GMeshDiffusion/metadata/get_splits_upper.py` to generate lists of training and test datapoints.
 
 
-### Evaluation
+### Inference
 
 1. Modify the batch size in config files in `GMeshDiffusion/diffusion_config/` and enter the desired directories and values (for model checkpoints, where to store generated samples, etc.) in `GMeshDiffusion/scripts`.
 2. Run the eval scripts in `GMeshDiffusion/scripts`.
