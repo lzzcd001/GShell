@@ -6,7 +6,7 @@ random.seed(42)
 split_ratio = 0.9
 data_root = 'PLACEHOLDER'
 grid_root = os.path.join(data_root, 'grid')
-occgrid_root = os.path.join(data_root, 'occgrid')
+occgrid_root = os.path.join(data_root, 'grid_aug')
 data_path_list = sorted([os.path.join(data_root, fpath) for fpath in os.listdir(data_root)])
 
 random.shuffle(data_path_list)
