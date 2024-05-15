@@ -43,7 +43,7 @@ def compute_sdf_reg_loss(sdf, all_edges):
 ###############################################################################
 
 class GShellTetsGeometry(torch.nn.Module):
-    def __init__(self, grid_res, scale, FLAGS, offset=None):
+    def __init__(self, grid_res, scale, FLAGS, offset=None, tet_init_file=None, extract_from_generative=False):
         super(GShellTetsGeometry, self).__init__()
 
         self.FLAGS         = FLAGS
@@ -55,13 +55,27 @@ class GShellTetsGeometry(torch.nn.Module):
         with torch.no_grad():
             self.optix_ctx = ou.OptiXContext()
 
-            tets = np.load('data/tets/{}_tets.npz'.format(self.grid_res))
+            if tet_init_file is None:
+                tets = np.load('data/tets/{}_tets.npz'.format(self.grid_res))
+            else:
+                tets = np.load(tet_init_file)
             print(f'using resolution {self.grid_res}')
             self.verts    = torch.tensor(tets['vertices'], dtype=torch.float32, device='cuda')
+            self.original_verts = self.verts.clone() if extract_from_generative else None
             self.verts    = self.verts - self.verts.mean(dim=0)
             self.verts    = self.verts * scale * self.boxscale
             self.indices  = torch.tensor(tets['indices'], dtype=torch.long, device='cuda')
             self.generate_edges()
+
+            if extract_from_generative:
+                self.sorted_tetedges = torch.tensor(tets['tet_edges'], dtype=torch.long, device='cuda')
+                vertices = torch.tensor(tets['vertices'], dtype=torch.float32, device='cuda')
+                vertices_unique = vertices.view(-1).unique()
+                dx = (vertices_unique[1] - vertices_unique[0]) / 2.0 ### denser grid for edge + tet features
+                vertices_discretized = (
+                    ((vertices - vertices.min()) / dx)
+                ).long()
+                self.verts_discretized = vertices_discretized.long().float() ### used to identify where to store edge + tet features
 
             if offset is None:
                 offset = 0.0
@@ -149,6 +163,30 @@ class GShellTetsGeometry(torch.nn.Module):
         if not self.FLAGS.use_tanh_deform:
             self.deform.data[:] = self.deform.clamp(-1.0, 1.0)
         self.msdf.data[:] = self.msdf.clamp(-2.0, 2.0)
+
+    def getMesh_from_augmented_grid_withocc(self, material, sdf_sign, sdf_coeff, msdf_sign, occgrid):
+        # Run DM tet to get a base mesh
+        v_deformed = self.verts + self.max_displacement * self.deform
+        if self.FLAGS.use_sdf_mlp:
+            sdf = self.sdf_net(v_deformed)
+        else:
+            sdf = self.sdf
+
+        verts, faces, uvs, uv_idx, v_tng, v_pos_original, tet_gidx, v_msdf, msdf_vert_original = self.gshell_tets.marching_from_auggrid(
+            v_deformed, sdf_sign, self.indices,
+            self.sorted_tetedges, sdf_coeff, self.verts_discretized, 
+            msdf_sign, 
+            occgrid)
+        imesh = mesh.Mesh(verts, faces, v_tex=uvs, t_tex_idx=uv_idx, material=material)
+
+        # Run mesh operations to generate tangent space
+        imesh = mesh.auto_normals(imesh)
+        imesh = mesh.compute_tangents(imesh, v_tng=v_tng)
+        return {
+            'imesh': imesh,
+            'sdf': sdf,
+            'v_msdf': v_msdf,
+        }
 
     def getMesh(self, material):
         v_deformed = self.verts + self.max_displacement * self.deform

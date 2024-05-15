@@ -441,3 +441,179 @@ class GShell_Tets:
             }
 
         return verts_aug, faces_aug, None, None, v_tng_aug, extra
+    
+
+    @torch.no_grad()
+    def marching_from_auggrid(self, pos_nx3, sdf_n, tet_fx4, 
+                          sorted_tet_edges_fx6x2, coeff_sdf_interp, verts_discretized, 
+                          midpoint_msdf_sign_n, occgrid
+                          ):
+        sdf_n = sdf_n.float()
+        ### To determine if tets are valid
+        ### Step 1: SDF criteria
+        occ_n = sdf_n > 0
+        occ_fx4 = occ_n[tet_fx4.reshape(-1)].reshape(-1,4)
+        occ_sum = torch.sum(occ_fx4, -1)
+
+        valid_tets = (occ_sum>0) & (occ_sum<4)
+        v_id = torch.pow(2, torch.arange(4, dtype=torch.long, device="cuda"))
+        tetindex = (occ_fx4[valid_tets] * v_id.unsqueeze(0)).sum(-1)
+
+
+        # find all vertices
+        all_edges = sorted_tet_edges_fx6x2.reshape(-1, 6, 2)[valid_tets].reshape(-1, 2)
+        all_edges = all_edges.view(-1, 1, 2)
+        unique_edges, idx_map = torch.unique(all_edges, dim=0, return_inverse=True)
+
+
+        unique_edges = unique_edges.long()
+        mask_edges = occ_n[unique_edges.reshape(-1)].reshape(-1,2).sum(-1) == 1
+        mapping = torch.ones((unique_edges.shape[0]), dtype=torch.long, device="cuda") * -1
+        mapping[mask_edges] = torch.arange(mask_edges.sum(), dtype=torch.long, device="cuda")
+        idx_map = mapping[idx_map] # map edges to verts
+
+        interp_v = unique_edges[mask_edges]
+
+
+        edges_to_interp = pos_nx3[interp_v.reshape(-1)].reshape(-1,2,3)
+        edges_to_interp_canonical = verts_discretized[interp_v.reshape(-1)].reshape(-1,2,3).float()
+        verts_canonical = (edges_to_interp_canonical[:, 0] + edges_to_interp_canonical[:, 1]) / 2.0
+
+        tetedge_cano_midpts = verts_discretized[interp_v.reshape(-1)].float().reshape(-1,2,3).mean(dim=1).long()
+
+        coeff_sdf_interp = coeff_sdf_interp[tetedge_cano_midpts[:, 0], tetedge_cano_midpts[:, 1], tetedge_cano_midpts[:, 2]].view(-1, 1).clamp(0, 1)
+        verts = edges_to_interp[:, 1] * coeff_sdf_interp + edges_to_interp[:, 0] * (1 - coeff_sdf_interp)
+
+        msdf_vert = midpoint_msdf_sign_n[tetedge_cano_midpts[:, 0], tetedge_cano_midpts[:, 1], tetedge_cano_midpts[:, 2]]
+
+        # (M, 6), M: num of pre-filtered tets, storing indices (besides -1) from 0 to num_mask_edges
+        idx_map = idx_map.reshape(-1,6)
+
+        v_id = torch.pow(2, torch.arange(4, dtype=torch.long, device="cuda"))
+        tetindex = (occ_fx4[valid_tets] * v_id.unsqueeze(0)).sum(-1)
+        # triangle count
+        num_triangles = self.num_triangles_table[tetindex]
+
+        # Get global face index (static, does not depend on topology), before mSDF processing
+        num_tets = tet_fx4.shape[0]
+        tet_gidx = torch.arange(num_tets, dtype=torch.long, device="cuda")[valid_tets]
+        face_gidx_pre = torch.cat((
+            tet_gidx[num_triangles == 1]*2,
+            torch.stack((tet_gidx[num_triangles == 2]*2, tet_gidx[num_triangles == 2]*2 + 1), dim=-1).view(-1)
+        ), dim=0)
+
+        valid_tet_gidx = torch.cat([tet_gidx[num_triangles == 1], tet_gidx[num_triangles == 2]], dim=0)
+
+        # Get uv before mSDF processing
+        uvs_pre, uv_idx_pre = self.map_uv(face_gidx_pre, num_tets*2)
+
+        # Generate triangle indices before vis processing
+        faces = torch.cat((
+            torch.gather(input=idx_map[num_triangles == 1], dim=1, index=self.triangle_table[tetindex[num_triangles == 1]][:, :3]).reshape(-1,3),
+            torch.gather(input=idx_map[num_triangles == 2], dim=1, index=self.triangle_table[tetindex[num_triangles == 2]][:, :6]).reshape(-1,3),
+        ), dim=0)
+
+        v_nrm, t_nrm_idx = auto_normals(verts, faces)
+        v_tng, _ = compute_tangents(verts, uvs_pre, v_nrm, faces, faces, faces)
+
+        ###### Triangulation with mSDF
+        edge_indices_tri = self.pre_mesh_edge_table[tetindex[num_triangles == 1]][:, [0, 1, 1, 2, 2, 0]]
+        edge_indices_quad = self.pre_mesh_edge_table[tetindex[num_triangles == 2]][:, [0, 1, 1, 2, 2, 3, 3, 0]]
+        pre_mesh_edge_tri = torch.gather(input=idx_map[num_triangles == 1], dim=1, 
+                index=edge_indices_tri
+            ).view(-1, 3, 2)
+        pre_mesh_edge_quad = torch.gather(input=idx_map[num_triangles == 2], dim=1, 
+                index=edge_indices_quad
+            ).view(-1, 4, 2)
+        msdf_positive_fx3 = (msdf_vert[pre_mesh_edge_tri[:, :, 0].reshape(-1)].reshape(-1, 3) > 0).long()
+        msdf_positive_fx4 = (msdf_vert[pre_mesh_edge_quad[:, :, 0].reshape(-1)].reshape(-1, 4) > 0).long()
+
+
+        edges_to_interp_prevert_tri = verts[pre_mesh_edge_tri.reshape(-1)].reshape(-1,2,3)
+        edges_to_interp_prevert_quad = verts[pre_mesh_edge_quad.reshape(-1)].reshape(-1,2,3)
+        edges_to_interp_pretng_tri = v_tng[pre_mesh_edge_tri.reshape(-1)].reshape(-1,2,3)
+        edges_to_interp_pretng_quad = v_tng[pre_mesh_edge_quad.reshape(-1)].reshape(-1,2,3)
+
+
+        edges_to_interp_sort_tri = verts_canonical[pre_mesh_edge_tri.reshape(-1)].reshape(-1,2,3)
+        edges_to_interp_sort_quad = verts_canonical[pre_mesh_edge_quad.reshape(-1)].reshape(-1,2,3)
+
+
+        meshocc_loc_tri = (edges_to_interp_sort_tri.mean(dim=1) * 2.0).long()
+        meshocc_loc_quad = (edges_to_interp_sort_quad.mean(dim=1) * 2.0).long()
+
+
+        msdf_coeff_tri = occgrid[meshocc_loc_tri[:, 0], meshocc_loc_tri[:, 1], meshocc_loc_tri[:, 2]] * 0.5 + 0.5
+        msdf_coeff_quad = occgrid[meshocc_loc_quad[:, 0], meshocc_loc_quad[:, 1], meshocc_loc_quad[:, 2]] * 0.5 + 0.5
+
+
+        msdf_coeff_tri = torch.stack([msdf_coeff_tri, 1 - msdf_coeff_tri], dim=-1)
+        msdf_coeff_quad = torch.stack([msdf_coeff_quad, 1 - msdf_coeff_quad], dim=-1)
+
+
+        inscribed_edge_twopoint_order_tri = torch.sign(edges_to_interp_sort_tri[:, 0, :] - edges_to_interp_sort_tri[:, 1, :])
+        inscribed_edge_twopoint_order_tri = (inscribed_edge_twopoint_order_tri * torch.tensor([16, 4, 1], device=inscribed_edge_twopoint_order_tri.device).view(1, -1)).sum(dim=-1)
+        inscribed_edge_twopoint_order_tri = torch.stack([inscribed_edge_twopoint_order_tri, -inscribed_edge_twopoint_order_tri], dim=-1)
+        _, inscribed_edge_twopoint_order_tri = inscribed_edge_twopoint_order_tri.sort(dim=-1, descending=True)
+
+        inscribed_edge_twopoint_order_quad = torch.sign(edges_to_interp_sort_quad[:, 0, :] - edges_to_interp_sort_quad[:, 1, :])
+        inscribed_edge_twopoint_order_quad = (inscribed_edge_twopoint_order_quad * torch.tensor([16, 4, 1], device=inscribed_edge_twopoint_order_quad.device).view(1, -1)).sum(dim=-1)
+        inscribed_edge_twopoint_order_quad = torch.stack([inscribed_edge_twopoint_order_quad, -inscribed_edge_twopoint_order_quad], dim=-1)
+        _, inscribed_edge_twopoint_order_quad = inscribed_edge_twopoint_order_quad.sort(dim=-1, descending=True)
+
+        msdf_coeff_tri = torch.gather(
+            input=msdf_coeff_tri, 
+            dim=-1, 
+            index=inscribed_edge_twopoint_order_tri.view(-1, 2)
+        ).view(-1, 2, 1)
+
+        msdf_coeff_quad = torch.gather(
+            input=msdf_coeff_quad, 
+            dim=-1, 
+            index=inscribed_edge_twopoint_order_quad.view(-1, 2)
+        ).view(-1, 2, 1)
+
+        msdf_coeff_tri = msdf_coeff_tri.view(-1, 2, 1)
+        msdf_coeff_quad = msdf_coeff_quad.view(-1, 2, 1)
+
+
+        verts_aug = torch.cat([
+                    verts,
+                    (edges_to_interp_prevert_tri * msdf_coeff_tri).sum(1), 
+                    (edges_to_interp_prevert_quad * msdf_coeff_quad).sum(1),
+                ],
+            dim=0)
+
+        v_tng_aug = torch.cat([
+                    v_tng,
+                    (edges_to_interp_pretng_tri * msdf_coeff_tri).sum(1), 
+                    (edges_to_interp_pretng_quad * msdf_coeff_quad).sum(1),
+                ],
+            dim=0)
+
+        msdf_vert_aug = torch.cat([
+            msdf_vert,
+            torch.zeros(v_tng_aug.size(0) - v_tng.size(0)).cuda()
+        ])
+
+        v_id_msdf_tri = torch.flip(torch.pow(2, torch.arange(3, dtype=torch.long, device="cuda")), dims=[0]) ## do this flip because the triangle table uses a different assumption by mistake..
+        v_id_msdf_quad = torch.flip(torch.pow(2, torch.arange(4, dtype=torch.long, device="cuda")), dims=[0])
+        premesh_index_tri = (msdf_positive_fx3 * v_id_msdf_tri.unsqueeze(0)).sum(-1)
+        premesh_index_quad = (msdf_positive_fx4 * v_id_msdf_quad.unsqueeze(0)).sum(-1)
+
+        idx_map_tri = torch.cat([pre_mesh_edge_tri[:, :, 0], verts.size(0) + torch.arange(pre_mesh_edge_tri.size(0) * 3, device='cuda').view(-1, 3)], dim=-1)
+        idx_map_quad = torch.cat([pre_mesh_edge_quad[:, :, 0], verts.size(0) + pre_mesh_edge_tri.size(0) * 3 + torch.arange(pre_mesh_edge_quad.size(0) * 4, device='cuda').view(-1, 4)], dim=-1)
+
+        num_triangles_tri = self.num_triangles_tri_table[premesh_index_tri]
+        num_triangles_quad = self.num_triangles_quad_table[premesh_index_quad]
+
+        faces_aug = torch.cat((
+            torch.gather(input=idx_map_tri[num_triangles_tri == 1], dim=1, index=self.triangle_table_tri[premesh_index_tri[num_triangles_tri == 1]][:, :3]).view(-1, 3),
+            torch.gather(input=idx_map_tri[num_triangles_tri == 2], dim=1, index=self.triangle_table_tri[premesh_index_tri[num_triangles_tri == 2]][:, :6]).view(-1, 3),
+            torch.gather(input=idx_map_quad[num_triangles_quad == 1], dim=1, index=self.triangle_table_quad[premesh_index_quad[num_triangles_quad == 1]][:, :3]).view(-1, 3),
+            torch.gather(input=idx_map_quad[num_triangles_quad == 2], dim=1, index=self.triangle_table_quad[premesh_index_quad[num_triangles_quad == 2]][:, :6]).view(-1, 3),
+            torch.gather(input=idx_map_quad[num_triangles_quad == 3], dim=1, index=self.triangle_table_quad[premesh_index_quad[num_triangles_quad == 3]][:, :9]).view(-1, 3),
+            torch.gather(input=idx_map_quad[num_triangles_quad == 4], dim=1, index=self.triangle_table_quad[premesh_index_quad[num_triangles_quad == 4]][:, :12]).view(-1, 3),
+        ), dim=0)
+
+        return verts_aug, faces_aug, None, None, v_tng_aug, verts, valid_tet_gidx, msdf_vert_aug, msdf_vert
