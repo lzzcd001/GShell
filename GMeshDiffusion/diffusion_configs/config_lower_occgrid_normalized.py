@@ -18,8 +18,8 @@ def get_config():
     data.grid_metafile = os.path.join(data.root_dir, 'metadata/lower_res64_grid_train.txt')
     data.occgrid_metafile = os.path.join(data.root_dir, 'metadata/lower_res64_occgrid_train.txt')
 
-    data.occ_mask_path = os.path.join(data.root_dir, 'data/occ_mask_res64.pt')
-    data.tet_info_path = os.path.join(data.root_dir, 'data/tet_info.pt')
+    data.occ_mask_path = os.path.join(data.root_dir, 'metadata/occ_mask_res64.pt')
+    data.tet_info_path = os.path.join(data.root_dir, 'metadata/tet_info.pt')
 
     data.filter_meta_path = None
     data.aug = True
@@ -88,8 +88,8 @@ def get_config():
     model.pred_type = 'noise'
     model.conditional = True
 
-    model.feature_mask_path = os.path.join(data.root_dir, 'data/global_mask_res64.pt')
-    model.pixcat_mask_path = os.path.join(data.root_dir, 'data/cat_mask_res64.pt')
+    model.feature_mask_path = os.path.join(data.root_dir, 'metadata/global_mask_res64.pt')
+    model.pixcat_mask_path = os.path.join(data.root_dir, 'metadata/cat_mask_res64.pt')
 
     # optimization
     config.optim = optim = ml_collections.ConfigDict()
