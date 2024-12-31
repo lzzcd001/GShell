@@ -111,7 +111,7 @@ if __name__ == "__main__":
         mtl_default = None
 
 
-    tet_path = './data/tets/64_tets_cropped_rectified.npz'
+    tet_path = './data/tets/64_tets_cropped_reordered.npz'
     tet = np.load(tet_path)
     vertices = torch.tensor(tet['vertices'])
     edges = torch.tensor(tet['edges']).long()
