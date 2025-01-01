@@ -517,16 +517,26 @@ class GShell_Tets:
         v_tng, _ = compute_tangents(verts, uvs_pre, v_nrm, faces, faces, faces)
 
         ###### Triangulation with mSDF
-        edge_indices_tri = self.pre_mesh_edge_table[tetindex[num_triangles == 1]][:, [0, 1, 1, 2, 2, 0]]
-        edge_indices_quad = self.pre_mesh_edge_table[tetindex[num_triangles == 2]][:, [0, 1, 1, 2, 2, 3, 3, 0]]
+        # edge_indices_tri = self.pre_mesh_edge_table[tetindex[num_triangles == 1]][:, [0, 1, 1, 2, 2, 0]]
+        # edge_indices_quad = self.pre_mesh_edge_table[tetindex[num_triangles == 2]][:, [0, 1, 1, 2, 2, 3, 3, 0]]
+        # pre_mesh_edge_tri = torch.gather(input=idx_map[num_triangles == 1], dim=1, 
+        #         index=edge_indices_tri
+        #     ).view(-1, 3, 2)
+        # pre_mesh_edge_quad = torch.gather(input=idx_map[num_triangles == 2], dim=1, 
+        #         index=edge_indices_quad
+        #     ).view(-1, 4, 2)
+                              
         pre_mesh_edge_tri = torch.gather(input=idx_map[num_triangles == 1], dim=1, 
-                index=edge_indices_tri
+                index=self.mesh_edge_table[tetindex[num_triangles == 1]][:, [0, 1, 1, 2, 2, 0]]
             ).view(-1, 3, 2)
         pre_mesh_edge_quad = torch.gather(input=idx_map[num_triangles == 2], dim=1, 
-                index=edge_indices_quad
+                index=self.mesh_edge_table[tetindex[num_triangles == 2]][:, [0, 1, 1, 2, 2, 3, 3, 0]]
             ).view(-1, 4, 2)
+
         msdf_positive_fx3 = (msdf_vert[pre_mesh_edge_tri[:, :, 0].reshape(-1)].reshape(-1, 3) > 0).long()
         msdf_positive_fx4 = (msdf_vert[pre_mesh_edge_quad[:, :, 0].reshape(-1)].reshape(-1, 4) > 0).long()
+
+                              
 
 
         edges_to_interp_prevert_tri = verts[pre_mesh_edge_tri.reshape(-1)].reshape(-1,2,3)
